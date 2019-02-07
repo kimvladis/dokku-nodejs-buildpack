@@ -265,7 +265,11 @@ build_dependencies() {
 
 install_keys() {
   echo "Run install keys op"
-   if [ -d "$GIT_SSH_KEY" ]; then   
+  if [[ ! -v GIT_SSH_KEY ]]; then
+      echo "GIT_SSH_KEY is not set"
+  elif [[ -z "$GIT_SSH_KEY" ]]; then
+      echo "GIT_SSH_KEY is set to the empty string"  
+  else
     status "Detected SSH key for git.  launching ssh-agent and loading key"
     echo $GIT_SSH_KEY | base64 --decode > id_rsa
     # launch ssh-agent, we'll use it to serve our ssh key
@@ -278,14 +282,11 @@ install_keys() {
     rm id_rsa
     # Add github to the list of known hosts
     ssh -oStrictHostKeyChecking=no -T git@mayhem.3o48hhdaf.ru    
-  else
-    echo "SSH Key not found in env :-("
-    printenv
   fi  
 }
 
 delete_keys() {
-  if [ -d "$GIT_SSH_KEY" ]; then
+  if [ -z "$GIT_SSH_KEY" ]; then
     # Now that npm has finished running, we shouldn't need the ssh key anymore.  Kill ssh-agent
     eval `ssh-agent -k`
     # Clear that sensitive key data from the environment
