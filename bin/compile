@@ -270,7 +270,7 @@ install_keys() {
   elif [[ -z "$GIT_SSH_KEY" ]]; then
       echo "GIT_SSH_KEY is set to the empty string"  
   else
-    status "Detected SSH key for git.  launching ssh-agent and loading key"
+    echo "Detected SSH key for git.  launching ssh-agent and loading key"
     echo $GIT_SSH_KEY | base64 --decode > id_rsa
     # launch ssh-agent, we'll use it to serve our ssh key
     # and kill it towards the end of the buildpack's run
@@ -286,7 +286,11 @@ install_keys() {
 }
 
 delete_keys() {
-  if [ -z "$GIT_SSH_KEY" ]; then
+  if [[ ! -v GIT_SSH_KEY ]]; then
+      echo "GIT_SSH_KEY is not set"
+  elif [[ -z "$GIT_SSH_KEY" ]]; then
+      echo "GIT_SSH_KEY is set to the empty string"  
+  else
     # Now that npm has finished running, we shouldn't need the ssh key anymore.  Kill ssh-agent
     eval `ssh-agent -k`
     # Clear that sensitive key data from the environment
