@@ -77,40 +77,12 @@ install_iojs() {
   chmod +x "$dir"/bin/*
 }
 
-install_keys() {
-   if [ -d "$GIT_SSH_KEY" ]; then   
-    status "Detected SSH key for git.  launching ssh-agent and loading key"
-    echo $GIT_SSH_KEY | base64 --decode > id_rsa
-    # launch ssh-agent, we'll use it to serve our ssh key
-    # and kill it towards the end of the buildpack's run
-    eval `ssh-agent -s`
-    # We're not supporting passphrases at this time.  We could pull that in
-    # from config as well, but then we'd have to setup expect or some other
-    # terminal automation tool to feed it into ssh-add.
-    ssh-add id_rsa
-    rm id_rsa
-    # Add github to the list of known hosts
-    ssh -oStrictHostKeyChecking=no -T git@github.com    
-  fi  
-}
-
-delete_keys() {
-  if [ -d "$GIT_SSH_KEY" ]; then
-    # Now that npm has finished running, we shouldn't need the ssh key anymore.  Kill ssh-agent
-    eval `ssh-agent -k`
-    # Clear that sensitive key data from the environment
-    export GIT_SSH_KEY=0
-  fi
-}
-
 install_npm() {
   local npm_version
   local version="$1"
   local dir="$2"
   local npm_lock="$3"
   npm_version="$(npm --version)"
-
-  install_keys();
 
   # If the user has not specified a version of npm, but has an npm lockfile
   # upgrade them to npm 5.x if a suitable version was not installed with Node
@@ -130,8 +102,6 @@ install_npm() {
     fi
     echo "npm $version installed"
   fi
-
-  delete_keys();
 }
 
 

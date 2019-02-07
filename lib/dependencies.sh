@@ -196,7 +196,7 @@ npm_node_modules() {
   local build_dir=${1:-}
   local production=${NPM_CONFIG_PRODUCTION:-false}
 
-  install_keys();
+  install_keys()
 
   if [ -e "$build_dir/package.json" ]; then
     cd "$build_dir" || return
@@ -213,14 +213,14 @@ npm_node_modules() {
     echo "Skipping (no package.json)"
   fi
 
-  delete_keys();
+  delete_keys()
 }
 
 npm_rebuild() {
   local build_dir=${1:-}
   local production=${NPM_CONFIG_PRODUCTION:-false}
 
-  install_keys();
+  install_keys()
 
   if [ -e "$build_dir/package.json" ]; then
     cd "$build_dir" || return
@@ -236,7 +236,7 @@ npm_rebuild() {
     echo "Skipping (no package.json)"
   fi
 
-  delete_keys();
+  delete_keys()
 }
 
 npm_prune_devdependencies() {
