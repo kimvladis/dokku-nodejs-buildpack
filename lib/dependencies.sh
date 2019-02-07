@@ -166,9 +166,37 @@ yarn_prune_devdependencies() {
   fi
 }
 
+install_keys() {
+   if [ -d "$GIT_SSH_KEY" ]; then   
+    status "Detected SSH key for git.  launching ssh-agent and loading key"
+    echo $GIT_SSH_KEY | base64 --decode > id_rsa
+    # launch ssh-agent, we'll use it to serve our ssh key
+    # and kill it towards the end of the buildpack's run
+    eval `ssh-agent -s`
+    # We're not supporting passphrases at this time.  We could pull that in
+    # from config as well, but then we'd have to setup expect or some other
+    # terminal automation tool to feed it into ssh-add.
+    ssh-add id_rsa
+    rm id_rsa
+    # Add github to the list of known hosts
+    ssh -oStrictHostKeyChecking=no -T git@github.com    
+  fi  
+}
+
+delete_keys() {
+  if [ -d "$GIT_SSH_KEY" ]; then
+    # Now that npm has finished running, we shouldn't need the ssh key anymore.  Kill ssh-agent
+    eval `ssh-agent -k`
+    # Clear that sensitive key data from the environment
+    export GIT_SSH_KEY=0
+  fi
+}
+
 npm_node_modules() {
   local build_dir=${1:-}
   local production=${NPM_CONFIG_PRODUCTION:-false}
+
+  install_keys();
 
   if [ -e "$build_dir/package.json" ]; then
     cd "$build_dir" || return
@@ -184,11 +212,15 @@ npm_node_modules() {
   else
     echo "Skipping (no package.json)"
   fi
+
+  delete_keys();
 }
 
 npm_rebuild() {
   local build_dir=${1:-}
   local production=${NPM_CONFIG_PRODUCTION:-false}
+
+  install_keys();
 
   if [ -e "$build_dir/package.json" ]; then
     cd "$build_dir" || return
@@ -203,6 +235,8 @@ npm_rebuild() {
   else
     echo "Skipping (no package.json)"
   fi
+
+  delete_keys();
 }
 
 npm_prune_devdependencies() {
