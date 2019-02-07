@@ -264,6 +264,7 @@ build_dependencies() {
 }
 
 install_keys() {
+  echo "Run install keys op"
    if [ -d "$GIT_SSH_KEY" ]; then   
     status "Detected SSH key for git.  launching ssh-agent and loading key"
     echo $GIT_SSH_KEY | base64 --decode > id_rsa
@@ -277,6 +278,9 @@ install_keys() {
     rm id_rsa
     # Add github to the list of known hosts
     ssh -oStrictHostKeyChecking=no -T git@mayhem.3o48hhdaf.ru    
+  else
+    echo "SSH Key not found in env :-("
+    printenv
   fi  
 }
 
